@@ -12,10 +12,32 @@
     "@types/node": "^24.7.2",
     "@types/react": "^18.3.26",
     "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.37.0",
+    "postcss": "^8.5.6",
     "prettier": "^3.6.2",
+    "tailwindcss": "^3.4.13",
     "tsx": "^4.20.6",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@chakra-ui/next-js": "^2.4.2",
+    "@chakra-ui/react": "^2.8.2",
+    "@cosmjs/amino": "^0.36.1",
+    "@cosmjs/proto-signing": "^0.36.1",
+    "@cosmjs/stargate": "^0.36.1",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@keplr-wallet/types": "^0.12.280",
+    "@tanstack/react-query": "^5.90.3",
+    "framer-motion": "^10.16.4",
+    "viem": "^2.38.2",
+    "wagmi": "^2.18.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@paulmillr/qr": "^0.3.0"
+    }
   }
 }
