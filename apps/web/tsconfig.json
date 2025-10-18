@@ -20,6 +20,10 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@ui/*": ["src/ui/*"],
+      "@ui": ["src/ui/index"]
+    }
   }
 }

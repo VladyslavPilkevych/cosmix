@@ -2,6 +2,8 @@ export const metadata = { title: "Cosmix Web" };
 
 import "./globals.css";
 import Providers from "./providers";
+import { WalletBar } from "../components/WalletBar";
+import { Header } from '@ui';
 
 export default function RootLayout({
   children,
@@ -11,7 +13,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header right={<WalletBar />} />
+          {children}
+        </Providers>
       </body>
     </html>
   );

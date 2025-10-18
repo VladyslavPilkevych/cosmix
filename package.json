@@ -39,5 +39,14 @@
     "overrides": {
       "@paulmillr/qr": "^0.3.0"
     }
+  },
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ui": ["packages/ui/src/index.ts"],
+      "@ui/*": ["packages/ui/src/*"],
+      "@sdk": ["packages/sdk/src/index.ts"],
+      "@sdk/*": ["packages/sdk/src/*"]
+    }
   }
 }
