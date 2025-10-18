@@ -18,3 +18,8 @@ It provides a unified interface for wallet connection (**MetaMask**, **Keplr**),
 - **Web3:** MetaMask, Keplr, Cosmos SDK  
 - **Repo Management:** Turborepo  
 - **Package Manager:** pnpm  
+
+### Build package with command
+- `pnpm -F @sdk build`
+- `pnpm -F @ui build`
+

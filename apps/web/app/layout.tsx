@@ -1,9 +1,12 @@
-export const metadata = { title: "Cosmix Web" };
-
 import "./globals.css";
+import type { Metadata } from "next";
 import Providers from "./providers";
-import { WalletBar } from "../components/WalletBar";
 import { Header } from '@ui';
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+
+export const metadata: Metadata = {
+  title: "Cosmix",
+};
 
 export default function RootLayout({
   children,
@@ -14,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <Header right={<WalletBar />} />
+          <Header right={<ConnectButton />} />
           {children}
         </Providers>
       </body>

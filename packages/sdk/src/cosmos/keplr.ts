@@ -1,43 +1,57 @@
-import type { Window as KeplrWindow } from "@keplr-wallet/types";
+import type { Keplr } from "@keplr-wallet/types";
 import { StargateClient } from "@cosmjs/stargate";
 
-// Простейшая карта RPC по chainId
-const RPC_BY_CHAIN: Record<string, string> = {
-  "cosmoshub-4": "https://rpc.cosmos.network:443",
+export type CosmosChainMeta = {
+  chainId: string;
+  rpc: string;
+  bech32Prefix: string;
+  baseDenom: string;
+  displayDenom: string;
+  decimals: number;
 };
 
-type KeplrWin = Window & KeplrWindow & {
-  getOfflineSignerAuto?: (chainId: string) => any;
+export const COSMOS_HUB: CosmosChainMeta = {
+  chainId: "cosmoshub-4",
+  rpc:
+    (typeof window !== "undefined" &&
+      (window as any)?.__COSMOS_RPC__) ||
+    process.env.NEXT_PUBLIC_COSMOS_RPC ||
+    "https://rpc.cosmos.directory/cosmoshub",
+  bech32Prefix: "cosmos",
+  baseDenom: "uatom",
+  displayDenom: "ATOM",
+  decimals: 6,
 };
 
-export async function connectKeplr(chainId: string) {
-  const w = window as unknown as KeplrWin;
-  if (!w.keplr) throw new Error("Keplr not found. Install the extension.");
+declare global {
+  interface Window {
+    keplr?: Keplr;
+    getOfflineSignerAuto?: (chainId: string) => any;
+  }
+}
 
-  // enable всегда через w.keplr
-  await w.keplr.enable(chainId);
+export async function connectKeplr(chain: CosmosChainMeta = COSMOS_HUB) {
+  if (!window.keplr) {
+    throw new Error("Keplr not found. Install the Keplr extension.");
+  }
+  await window.keplr.enable(chain.chainId);
 
-  // Пытаемся использовать keplr.getOfflineSignerAuto, иначе fallback
-  const getAuto =
-    w.keplr.getOfflineSignerAuto?.bind(w.keplr) ??
-    w.getOfflineSignerAuto?.bind(w) ??
-    null;
-
-  const offlineSigner = getAuto
-    ? await getAuto(chainId)
-    : w.keplr.getOfflineSigner(chainId);
-
-  const accounts = await offlineSigner.getAccounts();
+  const signer = await window.getOfflineSignerAuto!(chain.chainId);
+  const accounts = await signer.getAccounts();
   const address = accounts[0]?.address;
   if (!address) throw new Error("No accounts in Keplr");
 
-  return { address };
+  return { address, signer };
 }
 
-export async function getCosmosBalance(address: string, chainId: string) {
-  const rpc = RPC_BY_CHAIN[chainId];
-  if (!rpc) throw new Error(`RPC for ${chainId} is not configured`);
-  const client = await StargateClient.connect(rpc);
-  const balances = await client.getAllBalances(address);
-  return balances; // массив Coin { denom, amount }
+export async function getCosmosBalance(
+  address: string,
+  chain: CosmosChainMeta = COSMOS_HUB
+) {
+  const client = await StargateClient.connect(chain.rpc);
+  const bal = await client.getBalance(address, chain.baseDenom);
+  const amount =
+    bal?.amount ? Number(bal.amount) / 10 ** chain.decimals : 0;
+
+  return { amount, denom: chain.displayDenom };
 }
