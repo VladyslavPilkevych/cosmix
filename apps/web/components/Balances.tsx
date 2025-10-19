@@ -1,6 +1,22 @@
 "use client";
 import * as React from "react";
-import { SimpleGrid, VStack, Spinner, Button, Text, HStack, Select } from "@chakra-ui/react";
+import {
+  SimpleGrid,
+  VStack,
+  Spinner,
+  Button,
+  Text,
+  HStack,
+  Select,
+  Skeleton,
+  TableContainer,
+  Table,
+  Thead,
+  Th,
+  Tr,
+  Tbody,
+  Td,
+} from "@chakra-ui/react";
 import { Card, Stat } from "@ui";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
@@ -11,15 +27,12 @@ import {
   getEthBalance,
   OSMOSIS_TESTNET,
   CosmosChainMeta,
+  getCosmosAllBalances,
 } from "@sdk";
 
 export function Balances() {
+  // EVM Balance
   const { address, chainId } = useAccount();
-
-  const hasKeplr =
-    typeof window !== "undefined" &&
-    typeof (window as any).keplr !== "undefined";
-
   const { data: evm, isLoading: evmLoading } = useQuery({
     queryKey: ["evm-balance", address, chainId],
     queryFn: async () => {
@@ -28,6 +41,11 @@ export function Balances() {
     },
     enabled: !!address,
   });
+
+  // Cosmos Balance
+  const hasKeplr =
+    typeof window !== "undefined" &&
+    typeof (window as any).keplr !== "undefined";
 
   const [cosmosChain, setCosmosChain] =
     React.useState<CosmosChainMeta>(OSMOSIS_TESTNET);
@@ -42,11 +60,39 @@ export function Balances() {
     localStorage.setItem("cosmosChainId", cosmosChain.chainId);
   }, [cosmosChain]);
 
-  const { data: cosmos, isLoading: cosmosLoading, refetch: refetchCosmos } = useQuery({
+  React.useEffect(() => {
+    const savedAddr = localStorage.getItem("cosmosAddress");
+    const hasKeplr =
+      typeof window !== "undefined" &&
+      typeof (window as any).keplr !== "undefined";
+    if (savedAddr && hasKeplr) {
+      connectKeplr(cosmosChain)
+        .then(({ address }) => {
+          setCosmosAddress(address);
+          localStorage.setItem("cosmosAddress", address);
+        })
+        .catch(() => {});
+    }
+  }, [cosmosChain]);
+
+  const {
+    data: cosmosMain,
+    isLoading: cosmosLoadingMain,
+    refetch: refetchCosmos,
+  } = useQuery({
     queryKey: ["cosmos-balance", cosmosAddress, cosmosChain.chainId],
     queryFn: async () => {
       if (!cosmosAddress) return null;
       return getCosmosBalance(cosmosAddress, cosmosChain);
+    },
+    enabled: !!cosmosAddress,
+  });
+
+  const { data: cosmosAll, isLoading: cosmosLoadingAll } = useQuery({
+    queryKey: ["cosmos-balances-all", cosmosAddress, cosmosChain.chainId],
+    queryFn: async () => {
+      if (!cosmosAddress) return [];
+      return getCosmosAllBalances(cosmosAddress, cosmosChain);
     },
     enabled: !!cosmosAddress,
   });
@@ -75,34 +121,98 @@ export function Balances() {
 
       <Card>
         <VStack align="start" gap={3} w="full">
-          <HStack w="full">
-            <Text fontSize="sm" color="gray.500">{"Cosmos Balance"}</Text>
+          <HStack w="full" justify="space-between">
+            <Text fontSize="sm" color="gray.500">
+              {"Cosmos"}
+            </Text>
             <Select
               size="sm"
-              maxW="220px"
+              maxW="230px"
               value={cosmosChain.chainId}
               onChange={(e) =>
-                setCosmosChain(e.target.value === OSMOSIS_TESTNET.chainId ? OSMOSIS_TESTNET : COSMOS_HUB)
+                setCosmosChain(
+                  e.target.value === OSMOSIS_TESTNET.chainId
+                    ? OSMOSIS_TESTNET
+                    : COSMOS_HUB,
+                )
               }
             >
-              <option value={OSMOSIS_TESTNET.chainId}>{"Osmosis Testnet"}</option>
-              <option value={COSMOS_HUB.chainId}>{"Cosmos Hub (mainnet)"}</option>
+              <option value={OSMOSIS_TESTNET.chainId}>
+                {"Osmosis Testnet"}
+              </option>
+              <option value={COSMOS_HUB.chainId}>
+                {"Cosmos Hub (mainnet)"}
+              </option>
             </Select>
           </HStack>
 
-          {!cosmosAddress ? (
+          {!hasKeplr ? (
+            <Button
+              as="a"
+              href="https://www.keplr.app/download"
+              target="_blank"
+              rel="noreferrer"
+              size="sm"
+              variant="solid"
+            >
+              {"Install Keplr"}
+            </Button>
+          ) : !cosmosAddress ? (
             <Button onClick={onConnectKeplr} variant="outline" size="sm">
               {"Connect Keplr"}
             </Button>
-          ) : cosmosLoading ? (
-            <Spinner />
           ) : (
-            <Stat
-              label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
-              value={
-                cosmos ? `${cosmos.amount.toFixed(6)} ${cosmos.denom}` : "—"
-              }
-            />
+            <>
+              {cosmosLoadingMain ? (
+                <Skeleton height="28px" w="180px" />
+              ) : (
+                <Stat
+                  label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
+                  value={
+                    cosmosMain
+                      ? `${cosmosMain.amount.toFixed(6)} ${cosmosMain.denom}`
+                      : "—"
+                  }
+                />
+              )}
+
+              {cosmosLoadingAll ? (
+                <Skeleton height="120px" w="100%" />
+              ) : (
+                <TableContainer w="full">
+                  <Table size="sm" variant="simple">
+                    <Thead>
+                      <Tr>
+                        <Th>{"Asset"}</Th>
+                        <Th isNumeric>{"Amount"}</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {(cosmosAll ?? []).length === 0 ? (
+                        <Tr>
+                          <Td colSpan={2}>
+                            <Text fontSize="sm" color="gray.500">
+                              {
+                                "No assets found."
+                              }
+                            </Text>
+                          </Td>
+                        </Tr>
+                      ) : (
+                        cosmosAll!.map((c, i) => (
+                          <Tr key={i}>
+                            <Td>{c.denom}</Td>
+                            <Td isNumeric>
+                              {Number(c.amount).toLocaleString()}
+                            </Td>
+                          </Tr>
+                        ))
+                      )}
+                    </Tbody>
+                  </Table>
+                </TableContainer>
+              )}
+            </>
           )}
         </VStack>
       </Card>

@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Providers from "./providers";
 import { Header } from '@ui';
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import WalletPanel from "../components/WalletPanel";
 
 export const metadata: Metadata = {
   title: "Cosmix",
@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <Header right={<ConnectButton />} />
+          <Header right={<WalletPanel />} />
           {children}
         </Providers>
       </body>

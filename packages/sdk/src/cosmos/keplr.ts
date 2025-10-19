@@ -1,5 +1,5 @@
 import type { Keplr } from "@keplr-wallet/types";
-import { StargateClient } from "@cosmjs/stargate";
+import { StargateClient, type Coin } from "@cosmjs/stargate";
 
 export type CosmosChainMeta = {
   chainId: string;
@@ -68,4 +68,20 @@ export async function getCosmosBalance(
     bal?.amount ? Number(bal.amount) / 10 ** chain.decimals : 0;
 
   return { amount, denom: chain.displayDenom };
+}
+
+export async function getCosmosAllBalances(
+  address: string,
+  chain: CosmosChainMeta = COSMOS_HUB
+) {
+  const client = await StargateClient.connect(chain.rpc);
+  const balances: readonly Coin[] = await client.getAllBalances(address);
+  return balances.map((c) => {
+    const isBase = c.denom === chain.baseDenom;
+    const amount = isBase
+      ? Number(c.amount) / 10 ** chain.decimals
+      : Number(c.amount);
+    const denom = isBase ? chain.displayDenom : c.denom;
+    return { amount, denom };
+  });
 }
