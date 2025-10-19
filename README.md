@@ -19,7 +19,7 @@ It provides a unified interface for wallet connection (**MetaMask**, **Keplr**),
 - **Repo Management:** Turborepo  
 - **Package Manager:** pnpm  
 
-### Build package with command
+### Build package with commands
 - `pnpm -F @sdk build`
 - `pnpm -F @ui build`
 
