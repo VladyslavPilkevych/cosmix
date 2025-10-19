@@ -2,15 +2,18 @@
 
 import * as React from "react";
 import NextLink from "next/link";
-import { Box, Flex, HStack, Link, Spacer, Text } from "@chakra-ui/react";
+import { Box, Flex, HStack, Link, Spacer, Text, useColorModeValue } from "@chakra-ui/react";
 
 type HeaderProps = {
   right?: React.ReactNode;
 };
 
 export function Header({ right }: HeaderProps) {
+  const bg = useColorModeValue("white", "gray.900");
+  const brd = useColorModeValue("gray.200", "whiteAlpha.200");
+
   return (
-    <Box as="header" px={4} py={3} borderBottom="1px solid #eee" bg="white">
+    <Box as="header" px={4} py={3} borderBottom={`1px solid ${brd}`} bg={bg}>
       <Flex align="center" gap={4}>
         <HStack spacing={4}>
           <Text fontWeight="bold">{"Cosmix"}</Text>

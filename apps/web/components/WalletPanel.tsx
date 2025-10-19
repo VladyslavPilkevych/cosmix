@@ -13,6 +13,8 @@ import {
   useToast,
   Box,
   Badge,
+  useColorModeValue,
+  Divider,
 } from "@chakra-ui/react";
 import { Copy as CopyIcon, ChevronDown } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -25,6 +27,15 @@ import {
 
 export default function WalletPanel() {
   const toast = useToast();
+
+  const panelBg       = useColorModeValue("white", "gray.800");
+  const panelBorder   = useColorModeValue("gray.200", "whiteAlpha.300");
+  const textColor     = useColorModeValue("gray.800", "whiteAlpha.900");
+  const subtleText    = useColorModeValue("gray.500", "gray.400");
+  const ghostHoverBg  = useColorModeValue("gray.50", "whiteAlpha.100");
+  const menuBg        = useColorModeValue("white", "gray.800");
+  const menuBorder    = useColorModeValue("gray.200", "whiteAlpha.300");
+  const menuItemHover = useColorModeValue("gray.50", "whiteAlpha.100");
 
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
@@ -93,6 +104,7 @@ export default function WalletPanel() {
   return (
     <HStack spacing={3}>
       <ConnectButton chainStatus="icon" showBalance={false} />
+
       {!hasKeplr ? (
         <Button
           as="a"
@@ -114,27 +126,31 @@ export default function WalletPanel() {
           px={3}
           py={2}
           rounded="xl"
-          bg="white"
+          bg={panelBg}
           border="1px solid"
-          borderColor="gray.200"
+          borderColor={panelBorder}
           shadow="sm"
           spacing={2}
         >
           <Badge variant="subtle" colorScheme="purple">
-            {"Cosmos"}
+            {"COSMOS"}
           </Badge>
-          <Text fontWeight="medium">
+
+          <Text fontWeight="medium" color={textColor}>
             {addr.slice(0, 6)}…{addr.slice(-4)}
           </Text>
+
           <Tooltip label="Copy address">
             <IconButton
               aria-label="Copy"
               icon={<CopyIcon size={16} />}
               size="xs"
               variant="ghost"
+              _hover={{ bg: ghostHoverBg }}
               onClick={onCopy}
             />
           </Tooltip>
+
           <Menu>
             <MenuButton
               as={IconButton}
@@ -142,16 +158,21 @@ export default function WalletPanel() {
               icon={<ChevronDown size={16} />}
               size="xs"
               variant="ghost"
+              _hover={{ bg: ghostHoverBg }}
             />
-            <MenuList>
+            <MenuList
+              bg={menuBg}
+              borderColor={menuBorder}
+              shadow="lg"
+              minW="210px"
+              py={1}
+            >
               <MenuItem
                 onClick={() => {
                   setChain(OSMOSIS_TESTNET);
-                  localStorage.setItem(
-                    "cosmosChainId",
-                    OSMOSIS_TESTNET.chainId,
-                  );
+                  localStorage.setItem("cosmosChainId", OSMOSIS_TESTNET.chainId);
                 }}
+                _hover={{ bg: menuItemHover }}
               >
                 {"Use Osmosis Testnet"}
               </MenuItem>
@@ -160,10 +181,16 @@ export default function WalletPanel() {
                   setChain(COSMOS_HUB);
                   localStorage.setItem("cosmosChainId", COSMOS_HUB.chainId);
                 }}
+                _hover={{ bg: menuItemHover }}
               >
                 {"Use Cosmos Hub (mainnet)"}
               </MenuItem>
-              <MenuItem onClick={onDisconnect}>{"Disconnect Keplr"}</MenuItem>
+
+              <Divider my={1} borderColor={menuBorder} />
+
+              <MenuItem onClick={onDisconnect} _hover={{ bg: menuItemHover }} color={subtleText}>
+                {"Disconnect Keplr"}
+              </MenuItem>
             </MenuList>
           </Menu>
         </HStack>

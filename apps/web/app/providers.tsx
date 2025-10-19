@@ -2,16 +2,25 @@
 
 import "@rainbow-me/rainbowkit/styles.css";
 import { CacheProvider } from "@chakra-ui/next-js";
-import { ChakraProvider, extendTheme } from "@chakra-ui/react";
-
+import { ChakraProvider, extendTheme, useColorMode } from "@chakra-ui/react";
 import { http, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
-
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-
+import {
+  darkTheme,
+  getDefaultConfig,
+  lightTheme,
+  RainbowKitProvider,
+} from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastProvider } from "@ui";
 
-const theme = extendTheme({});
+const theme = extendTheme({
+  config: {
+    initialColorMode: "system",
+    useSystemColorMode: true,
+  },
+});
+
 const queryClient = new QueryClient();
 
 const config = getDefaultConfig({
@@ -25,15 +34,29 @@ const config = getDefaultConfig({
   ssr: true,
 });
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+function RKThemeBridge({ children }: { children: React.ReactNode }) {
+  const { colorMode } = useColorMode();
   const locale = "en-US"; // todo: create more different locales
 
+  return (
+    <RainbowKitProvider
+      theme={colorMode === "dark" ? darkTheme() : lightTheme()}
+      locale={locale}
+    >
+      {children}
+    </RainbowKitProvider>
+  );
+}
+
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <CacheProvider>
       <ChakraProvider theme={theme}>
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider locale={locale}>{children}</RainbowKitProvider>
+            <ToastProvider>
+              <RKThemeBridge>{children}</RKThemeBridge>
+            </ToastProvider>
           </QueryClientProvider>
         </WagmiProvider>
       </ChakraProvider>

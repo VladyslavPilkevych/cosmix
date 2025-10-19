@@ -16,8 +16,10 @@ import {
   Tr,
   Tbody,
   Td,
+  useColorModeValue,
+  Box,
 } from "@chakra-ui/react";
-import { Card, Stat } from "@ui";
+import { Card, Stat, CosmosAssetIcon } from "@ui";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -31,7 +33,17 @@ import {
 } from "@sdk";
 
 export function Balances() {
-  // EVM Balance
+  const headingColor = useColorModeValue("gray.800", "whiteAlpha.900");
+  const labelColor = useColorModeValue("gray.500", "gray.400");
+  const tableHeadColor = useColorModeValue("gray.500", "gray.400");
+  const tableBorder = useColorModeValue("gray.200", "whiteAlpha.200");
+  const mutedText = useColorModeValue("gray.500", "gray.500");
+  const spinnerColor = useColorModeValue("gray.600", "gray.200");
+  const selectBg = useColorModeValue("white", "gray.800");
+  const selectBorder = useColorModeValue("gray.200", "whiteAlpha.300");
+  const selectHoverBg = useColorModeValue("gray.50", "whiteAlpha.100");
+
+  // EVM balance
   const { address, chainId } = useAccount();
   const { data: evm, isLoading: evmLoading } = useQuery({
     queryKey: ["evm-balance", address, chainId],
@@ -42,7 +54,7 @@ export function Balances() {
     enabled: !!address,
   });
 
-  // Cosmos Balance
+  // Cosmos balance
   const hasKeplr =
     typeof window !== "undefined" &&
     typeof (window as any).keplr !== "undefined";
@@ -110,11 +122,13 @@ export function Balances() {
   return (
     <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
       <Card>
-        <VStack align="start">
+        <VStack align="start" spacing={2}>
           {evmLoading ? (
-            <Spinner />
+            <Spinner color={spinnerColor} />
           ) : (
-            <Stat label="EVM Balance (ETH)" value={evm?.ether ?? "—"} />
+            <Box color={headingColor}>
+              <Stat label="EVM Balance (ETH)" value={evm?.ether ?? "—"} />
+            </Box>
           )}
         </VStack>
       </Card>
@@ -122,9 +136,10 @@ export function Balances() {
       <Card>
         <VStack align="start" gap={3} w="full">
           <HStack w="full" justify="space-between">
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="sm" color={labelColor}>
               {"Cosmos"}
             </Text>
+
             <Select
               size="sm"
               maxW="230px"
@@ -136,13 +151,16 @@ export function Balances() {
                     : COSMOS_HUB,
                 )
               }
+              bg={selectBg}
+              borderColor={selectBorder}
+              _hover={{ bg: selectHoverBg }}
+              _focusVisible={{
+                borderColor: "blue.400",
+                boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)",
+              }}
             >
-              <option value={OSMOSIS_TESTNET.chainId}>
-                {"Osmosis Testnet"}
-              </option>
-              <option value={COSMOS_HUB.chainId}>
-                {"Cosmos Hub (mainnet)"}
-              </option>
+              <option value={OSMOSIS_TESTNET.chainId}>{"Osmosis Testnet"}</option>
+              <option value={COSMOS_HUB.chainId}>{"Cosmos Hub (mainnet)"}</option>
             </Select>
           </HStack>
 
@@ -154,6 +172,7 @@ export function Balances() {
               rel="noreferrer"
               size="sm"
               variant="solid"
+              colorScheme="blue"
             >
               {"Install Keplr"}
             </Button>
@@ -166,42 +185,59 @@ export function Balances() {
               {cosmosLoadingMain ? (
                 <Skeleton height="28px" w="180px" />
               ) : (
-                <Stat
-                  label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
-                  value={
-                    cosmosMain
-                      ? `${cosmosMain.amount.toFixed(6)} ${cosmosMain.denom}`
-                      : "—"
-                  }
-                />
+                <Box color={headingColor}>
+                  <Stat
+                    label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
+                    value={
+                      cosmosMain
+                        ? `${cosmosMain.amount.toFixed(6)} ${cosmosMain.denom}`
+                        : "—"
+                    }
+                  />
+                </Box>
               )}
 
               {cosmosLoadingAll ? (
                 <Skeleton height="120px" w="100%" />
               ) : (
                 <TableContainer w="full">
-                  <Table size="sm" variant="simple">
+                  <Table
+                    size="sm"
+                    variant="simple"
+                    sx={{
+                      "th, td": { borderColor: tableBorder },
+                    }}
+                  >
                     <Thead>
                       <Tr>
-                        <Th>{"Asset"}</Th>
-                        <Th isNumeric>{"Amount"}</Th>
+                        <Th color={tableHeadColor}>{"ASSET"}</Th>
+                        <Th isNumeric color={tableHeadColor}>
+                          {"AMOUNT"}
+                        </Th>
                       </Tr>
                     </Thead>
                     <Tbody>
                       {(cosmosAll ?? []).length === 0 ? (
                         <Tr>
                           <Td colSpan={2}>
-                            <Text fontSize="sm" color="gray.500">
-                              {
-                                "No assets found."
-                              }
+                            <Text fontSize="sm" color={mutedText}>
+                              {"No assets found."}
                             </Text>
                           </Td>
                         </Tr>
                       ) : (
                         cosmosAll!.map((c, i) => (
                           <Tr key={i}>
-                            <Td>{c.denom}</Td>
+                            <Td>
+                              <HStack spacing={2}>
+                                <CosmosAssetIcon
+                                  chain={cosmosChain.chainId}
+                                  symbol={c.denom}
+                                  size={20}
+                                />
+                                <Text>{c.denom}</Text>
+                              </HStack>
+                            </Td>
                             <Td isNumeric>
                               {Number(c.amount).toLocaleString()}
                             </Td>
