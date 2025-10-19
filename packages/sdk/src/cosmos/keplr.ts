@@ -10,6 +10,15 @@ export type CosmosChainMeta = {
   decimals: number;
 };
 
+export const OSMOSIS_TESTNET: CosmosChainMeta = {
+  chainId: "osmo-test-5",
+  rpc: "https://rpc.testnet.osmosis.zone",
+  bech32Prefix: "osmo",
+  baseDenom: "uosmo",
+  displayDenom: "OSMO",
+  decimals: 6,
+};
+
 export const COSMOS_HUB: CosmosChainMeta = {
   chainId: "cosmoshub-4",
   rpc:
@@ -21,6 +30,11 @@ export const COSMOS_HUB: CosmosChainMeta = {
   baseDenom: "uatom",
   displayDenom: "ATOM",
   decimals: 6,
+};
+
+export const COSMOS_CHAINS: Record<string, CosmosChainMeta> = {
+  "cosmoshub-4": COSMOS_HUB,
+  "osmo-test-5": OSMOSIS_TESTNET,
 };
 
 declare global {

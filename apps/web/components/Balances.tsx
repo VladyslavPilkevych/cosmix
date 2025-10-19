@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { SimpleGrid, VStack, Spinner, Button, Text } from "@chakra-ui/react";
+import { SimpleGrid, VStack, Spinner, Button, Text, HStack, Select } from "@chakra-ui/react";
 import { Card, Stat } from "@ui";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +9,8 @@ import {
   COSMOS_HUB,
   getCosmosBalance,
   getEthBalance,
+  OSMOSIS_TESTNET,
+  CosmosChainMeta,
 } from "@sdk";
 
 export function Balances() {
@@ -27,35 +29,33 @@ export function Balances() {
     enabled: !!address,
   });
 
+  const [cosmosChain, setCosmosChain] =
+    React.useState<CosmosChainMeta>(OSMOSIS_TESTNET);
   const [cosmosAddress, setCosmosAddress] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (cosmosAddress) localStorage.setItem("cosmosAddress", cosmosAddress);
-  }, [cosmosAddress]);
-
-  React.useEffect(() => {
-    const saved = localStorage.getItem("cosmosAddress");
-    if (saved) setCosmosAddress(saved);
+    const saved = localStorage.getItem("cosmosChainId");
+    if (saved === COSMOS_HUB.chainId) setCosmosChain(COSMOS_HUB);
+    if (saved === OSMOSIS_TESTNET.chainId) setCosmosChain(OSMOSIS_TESTNET);
   }, []);
+  React.useEffect(() => {
+    localStorage.setItem("cosmosChainId", cosmosChain.chainId);
+  }, [cosmosChain]);
 
-  const {
-    data: cosmos,
-    isLoading: cosmosLoading,
-    refetch: refetchCosmos,
-  } = useQuery({
-    queryKey: ["cosmos-balance", cosmosAddress],
+  const { data: cosmos, isLoading: cosmosLoading, refetch: refetchCosmos } = useQuery({
+    queryKey: ["cosmos-balance", cosmosAddress, cosmosChain.chainId],
     queryFn: async () => {
       if (!cosmosAddress) return null;
-      return getCosmosBalance(cosmosAddress, COSMOS_HUB);
+      return getCosmosBalance(cosmosAddress, cosmosChain);
     },
     enabled: !!cosmosAddress,
   });
 
   const onConnectKeplr = async () => {
     try {
-      const { address } = await connectKeplr(COSMOS_HUB);
+      const { address } = await connectKeplr(cosmosChain);
       setCosmosAddress(address);
-      setTimeout(() => refetchCosmos(), 0);
+      refetchCosmos();
     } catch (e: any) {
       alert(e?.message ?? "Failed to connect Keplr");
     }
@@ -74,37 +74,31 @@ export function Balances() {
       </Card>
 
       <Card>
-        <VStack align="start" gap={2}>
-          {!hasKeplr ? (
-            <>
-              <Text fontSize="sm" color="gray.500">
-                {"Cosmos Balance"}
-              </Text>
-              <Button
-                as="a"
-                href="https://www.keplr.app/download"
-                target="_blank"
-                rel="noreferrer"
-                variant="solid"
-                size="sm"
-              >
-                {"Install Keplr"}
-              </Button>
-            </>
-          ) : !cosmosAddress ? (
-            <>
-              <Text fontSize="sm" color="gray.500">
-                {"Cosmos Balance"}
-              </Text>
-              <Button onClick={onConnectKeplr} variant="outline" size="sm">
-                {"Connect Keplr"}
-              </Button>
-            </>
+        <VStack align="start" gap={3} w="full">
+          <HStack w="full">
+            <Text fontSize="sm" color="gray.500">{"Cosmos Balance"}</Text>
+            <Select
+              size="sm"
+              maxW="220px"
+              value={cosmosChain.chainId}
+              onChange={(e) =>
+                setCosmosChain(e.target.value === OSMOSIS_TESTNET.chainId ? OSMOSIS_TESTNET : COSMOS_HUB)
+              }
+            >
+              <option value={OSMOSIS_TESTNET.chainId}>{"Osmosis Testnet"}</option>
+              <option value={COSMOS_HUB.chainId}>{"Cosmos Hub (mainnet)"}</option>
+            </Select>
+          </HStack>
+
+          {!cosmosAddress ? (
+            <Button onClick={onConnectKeplr} variant="outline" size="sm">
+              {"Connect Keplr"}
+            </Button>
           ) : cosmosLoading ? (
             <Spinner />
           ) : (
             <Stat
-              label="Cosmos Balance"
+              label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
               value={
                 cosmos ? `${cosmos.amount.toFixed(6)} ${cosmos.denom}` : "—"
               }
