@@ -1,0 +1,11 @@
+{
+  "tokens": [
+    {
+      "chainId": 11155111,
+      "address": "0xA2CD0D318F0BB9bDcc19f2e905eaaC18E400d500",
+      "symbol": "TST",
+      "decimals": 18,
+      "extensions": { "coingeckoId": "ethereum" }
+    }
+  ]
+}

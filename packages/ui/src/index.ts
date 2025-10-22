@@ -10,3 +10,4 @@ export * from "./components/CosmosAssetIcon";
 export * from "./components/NetworkGate";
 export * from "./utils/format";
 export * from "./state/fiat";
+export * from "./state/watchlist";

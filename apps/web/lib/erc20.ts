@@ -42,3 +42,30 @@ export async function getErc20Balances(
   );
   return balances;
 }
+
+export async function detectNonZeroBalances(
+  user: `0x${string}`,
+  chainId: number,
+  tokens: Token[],
+) {
+  const chain = chainId === sepolia.id ? sepolia : mainnet;
+  const client = createPublicClient({ chain, transport: http() });
+
+  const res = await client.multicall({
+    contracts: tokens.map((t) => ({
+      address: t.address,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [user],
+    })),
+    allowFailure: true,
+  });
+
+  return tokens
+    .map((t, i) => ({
+      ...t,
+      raw: res[i].status === "success" ? (res[i].result as bigint) : 0n,
+    }))
+    .filter((x) => x.raw > 0n) // todo: commit for testing
+    .map((x) => ({ ...x, amount: Number(x.raw) / 10 ** x.decimals }));
+}

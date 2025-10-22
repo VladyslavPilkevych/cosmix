@@ -20,6 +20,8 @@ import {
   Box,
   Divider,
   Stack,
+  Input,
+  IconButton,
 } from "@chakra-ui/react";
 import {
   Card,
@@ -40,8 +42,12 @@ import {
   CosmosChainMeta,
   getCosmosAllBalances,
 } from "@sdk";
-import { getErc20Balances, Token } from "../lib/erc20";
+import { getErc20Balances, Token, detectNonZeroBalances } from "../lib/erc20";
 import { usePrices } from "../lib/prices";
+import { useTokenList } from "../lib/tokenlist";
+import { useCosmosAssets, formatCosmosAmount } from "../lib/cosmosRegistry";
+import { useWatchlistEvm } from "@ui";
+import { Star } from "lucide-react";
 
 const TOKENS_MAINNET: Token[] = [
   {
@@ -64,7 +70,6 @@ const TOKENS_MAINNET: Token[] = [
   },
 ];
 
-// для оценки Cosmos главного denom
 const COINGECKO_BY_DENOM: Record<string, string> = {
   OSMO: "osmosis",
   ATOM: "cosmos",
@@ -84,6 +89,13 @@ export function Balances() {
 
   // ---- EVM ----
   const { address, chainId } = useAccount();
+
+  const [evmTab, setEvmTab] = React.useState<"all" | "nonzero" | "watch">(
+    "all",
+  );
+  const [search, setSearch] = React.useState("");
+  const { isWatched, toggle, all: watched } = useWatchlistEvm(chainId);
+
   const { data: evm, isLoading: evmLoading } = useQuery({
     queryKey: ["evm-balance", address, chainId],
     queryFn: async () =>
@@ -93,6 +105,54 @@ export function Balances() {
     enabled: !!address,
   });
 
+  const { data: list = [] } = useTokenList(chainId);
+
+  const [evmTokens, setEvmTokens] = React.useState<
+    (Token & { amount?: number })[]
+  >([]);
+
+  const detectKey = React.useMemo(() => {
+    if (!address || !chainId) return "";
+    const listKeys = (list ?? []).map((t) => t.address).join(",");
+    const watchKey = (watched ?? []).join(",");
+    return `${address}-${chainId}|${listKeys}|${watchKey}`;
+  }, [address, chainId, list, watched]);
+
+  React.useEffect(() => {
+    if (!address || !chainId || !list.length) return;
+    let aborted = false;
+    (async () => {
+      const nonzero = await detectNonZeroBalances(
+        address as `0x${string}`,
+        chainId,
+        list,
+      );
+      if (aborted) return;
+      const watchTokens = list.filter((t) =>
+        watched.includes(t.address.toLowerCase()),
+      );
+      const merged = new Map<string, Token & { amount?: number }>();
+      [...nonzero, ...watchTokens].forEach((t) =>
+        merged.set(t.address.toLowerCase(), t),
+      );
+      setEvmTokens([...merged.values()]);
+    })().catch(() => setEvmTokens([]));
+    return () => {
+      aborted = true;
+    };
+  }, [detectKey, address, chainId, list]);
+
+  const filtered = React.useMemo(
+    () =>
+      evmTokens
+        .filter((t) => (evmTab === "watch" ? isWatched(t.address) : true))
+        .filter((t) => (evmTab === "nonzero" ? (t as any).amount > 0 : true))
+        .filter((t) =>
+          search ? t.symbol.toLowerCase().includes(search.toLowerCase()) : true,
+        ),
+    [evmTokens, evmTab, isWatched, search],
+  );
+
   // ---- Cosmos ----
   const hasKeplr =
     typeof window !== "undefined" &&
@@ -101,6 +161,8 @@ export function Balances() {
   const [cosmosChain, setCosmosChain] =
     React.useState<CosmosChainMeta>(OSMOSIS_TESTNET);
   const [cosmosAddress, setCosmosAddress] = React.useState<string | null>(null);
+
+  const { data: cosmosMeta = {} } = useCosmosAssets(cosmosChain.chainId);
 
   React.useEffect(() => {
     const saved = localStorage.getItem("cosmosChainId");
@@ -134,6 +196,14 @@ export function Balances() {
     enabled: !!cosmosAddress,
   });
 
+  const pretty = cosmosMain
+    ? formatCosmosAmount(
+        (cosmosMain as any).rawAmount ?? cosmosMain.amount,
+        (cosmosMain as any).base ?? cosmosMain.denom,
+        cosmosMeta,
+      )
+    : null;
+
   const { data: cosmosAll, isLoading: cosmosLoadingAll } = useQuery({
     queryKey: ["cosmos-balances-all", cosmosAddress, cosmosChain.chainId],
     queryFn: async () =>
@@ -158,31 +228,37 @@ export function Balances() {
     "usd-coin",
     "tether",
     "dai",
-    COINGECKO_BY_DENOM[cosmosChain.displayDenom] || "", // osmosis/cosmos если доступно
+    COINGECKO_BY_DENOM[cosmosChain.displayDenom] || "",
   ].filter(Boolean);
   const { data: prices = {} } = usePrices(priceIds, fiat);
 
-  const [erc20, setErc20] = React.useState<
-    { symbol: string; amount: number; coingeckoId?: string }[]
-  >([]);
-  React.useEffect(() => {
-    (async () => {
-      if (!address || !chainId) return setErc20([]);
-      if (chainId === 1) {
-        const list = await getErc20Balances(
-          address as `0x${string}`,
-          chainId,
-          TOKENS_MAINNET,
-        );
-        setErc20(list);
-      } else setErc20([]); // расширим позже
-    })().catch(() => setErc20([]));
-  }, [address, chainId]);
+  // const [erc20, setErc20] = React.useState<
+  //   { symbol: string; amount: number; coingeckoId?: string }[]
+  // >([]);
+
+  // React.useEffect(() => {
+  //   (async () => {
+  //     if (!address || !chainId) return setErc20([]);
+  //     if (TOKENS_MAINNET.length === 0) return setErc20([]);
+  //     const list = await getErc20Balances(
+  //       address as `0x${string}`,
+  //       chainId,
+  //       TOKENS_MAINNET,
+  //     );
+  //     setErc20(list);
+  //   })().catch(() => setErc20([]));
+  // }, [address, chainId]);
 
   const ethFiat =
     (evm?.ether ? Number(evm.ether) : 0) * (prices["ethereum"] ?? 0);
-  const erc20Fiat = erc20.reduce(
-    (s, t) => s + t.amount * (t.coingeckoId ? (prices[t.coingeckoId] ?? 0) : 0),
+  // const erc20Fiat = erc20.reduce(
+  //   (s, t) => s + t.amount * (t.coingeckoId ? (prices[t.coingeckoId] ?? 0) : 0),
+  //   0,
+  // );
+
+  const erc20Fiat = evmTokens.reduce(
+    (s, t) =>
+      s + (t.amount ?? 0) * (t.coingeckoId ? (prices[t.coingeckoId] ?? 0) : 0),
     0,
   );
   const cosmosMainFiat = cosmosMain?.amount
@@ -200,7 +276,7 @@ export function Balances() {
         <HStack justify="space-between" align="start">
           <VStack align="start" spacing={0.5}>
             <Text fontSize="sm" color={labelColor}>
-              Total portfolio
+              {"Total portfolio net worth"}
             </Text>
             <Text fontSize="2xl" fontWeight="bold">
               {formatFiat(totalFiat, fiat)}
@@ -238,7 +314,7 @@ export function Balances() {
                 {"EVM"}
               </Text>
               <Text fontSize="sm" color={labelColor}>
-                Subtotal:{" "}
+                {"Subtotal: "}
                 <Box as="span" fontWeight="semibold" color={headingColor}>
                   {formatFiat(evmSubtotal, fiat)}
                 </Box>
@@ -254,6 +330,43 @@ export function Balances() {
             </Box>
 
             <Divider />
+
+            <HStack justify="space-between" w="full" mb={2}>
+              <HStack spacing={2}>
+                <Button
+                  size="xs"
+                  variant={evmTab === "all" ? "solid" : "ghost"}
+                  onClick={() => setEvmTab("all")}
+                >
+                  {"All"}
+                </Button>
+                <Button
+                  size="xs"
+                  variant={evmTab === "nonzero" ? "solid" : "ghost"}
+                  onClick={() => setEvmTab("nonzero")}
+                >
+                  {"Non-zero"}
+                </Button>
+                <Button
+                  size="xs"
+                  variant={evmTab === "watch" ? "solid" : "ghost"}
+                  onClick={() => setEvmTab("watch")}
+                >
+                  {"Watchlist"}
+                </Button>
+              </HStack>
+
+              <Input
+                size="xs"
+                maxW="200px"
+                placeholder="Filter token…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                bg={selectBg}
+                borderColor={selectBorder}
+                _hover={{ bg: selectHoverBg }}
+              />
+            </HStack>
 
             <Table
               size="sm"
@@ -272,6 +385,51 @@ export function Balances() {
                 </Tr>
               </Thead>
               <Tbody>
+                {filtered?.length === 0 ? (
+                  <Tr>
+                    <Td colSpan={3}>
+                      <Text color={mutedText} fontSize="sm">
+                        {"No tokens for the current view."}
+                      </Text>
+                    </Td>
+                  </Tr>
+                ) : (
+                  filtered?.map((t) => (
+                    <Tr key={t.symbol}>
+                      <Td>
+                        <HStack spacing={2}>
+                          <IconButton
+                            aria-label={
+                              isWatched(t.address as `0x${string}`)
+                                ? "Unwatch"
+                                : "Watch"
+                            }
+                            size="xs"
+                            variant={
+                              isWatched(t.address as `0x${string}`)
+                                ? "solid"
+                                : "ghost"
+                            }
+                            onClick={() => toggle(t.address as `0x${string}`)}
+                            icon={<Star size={14} />}
+                          />
+                          <Text>{t.symbol}</Text>
+                        </HStack>
+                      </Td>
+
+                      <Td isNumeric>{formatAmount(t?.amount ?? 0)}</Td>
+                      <Td isNumeric>
+                        {formatFiat(
+                          (t?.amount ?? 0) *
+                            (t.coingeckoId ? (prices[t.coingeckoId] ?? 0) : 0),
+                          fiat,
+                        )}
+                      </Td>
+                    </Tr>
+                  ))
+                )}
+              </Tbody>
+              {/* <Tbody>
                 {erc20.length === 0 ? (
                   <Tr>
                     <Td colSpan={3}>
@@ -297,7 +455,7 @@ export function Balances() {
                     </Tr>
                   ))
                 )}
-              </Tbody>
+              </Tbody> */}
             </Table>
           </VStack>
         </Card>
@@ -367,13 +525,17 @@ export function Balances() {
                   <Skeleton height="28px" w="180px" />
                 ) : (
                   <Box color={headingColor}>
-                    <Stat
+                    {/* <Stat
                       label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
                       value={
                         cosmosMain
                           ? `${cosmosMain.amount.toFixed(6)} ${cosmosMain.denom}`
                           : "—"
                       }
+                    /> */}
+                    <Stat
+                      label={`${cosmosChain.displayDenom} on ${cosmosChain.chainId}`}
+                      value={pretty ? `${pretty.text} ${pretty.symbol}` : "—"}
                     />
                   </Box>
                 )}
