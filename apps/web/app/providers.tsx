@@ -23,7 +23,7 @@ const theme = extendTheme({
 
 const queryClient = new QueryClient();
 
-const config = getDefaultConfig({
+export const wagmiConfig = getDefaultConfig({
   appName: "Cosmix",
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
   chains: [mainnet, sepolia],
@@ -52,7 +52,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <CacheProvider>
       <ChakraProvider theme={theme}>
-        <WagmiProvider config={config}>
+        <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
             <ToastProvider>
               <RKThemeBridge>{children}</RKThemeBridge>
