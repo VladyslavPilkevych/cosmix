@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
-import { toastRpcError, useToast, NetworkGate } from "@ui";
-import type { EvmChain } from "@ui";
-import { SUPPORTED_EVM } from "../config/chains";
+import { toastRpcError, useToast } from "@cosmix/ui";
+import { SUPPORTED_EVM, type EvmChain } from "@cosmix/sdk";
+import { NetworkGate } from "./NetworkGate";
 
 export default function NetworkGateClient({
   children,

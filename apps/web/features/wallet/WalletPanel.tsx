@@ -23,7 +23,7 @@ import {
   COSMOS_HUB,
   OSMOSIS_TESTNET,
   type CosmosChainMeta,
-} from "@sdk";
+} from "@cosmix/sdk";
 
 export default function WalletPanel() {
   const toast = useToast();

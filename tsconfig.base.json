@@ -11,8 +11,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@sdk/*": ["packages/sdk/src/*"],
-      "@ui/*": ["packages/ui/src/*"]
+      "@cosmix/sdk/*": ["packages/sdk/src/*"],
+      "@cosmix/ui/*": ["packages/ui/src/*"]
     }
   }
 }

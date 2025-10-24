@@ -5,11 +5,17 @@
     "**/*.ts",
     "**/*.tsx",
     "next.config.mjs",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../../packages/sdk/src/chains/chains.ts",
+    "../../packages/sdk/src/cosmos/cosmos.ts",
+    "../../packages/sdk/src/cosmos/cosmosTx.ts",
+    "../../packages/sdk/src/cosmos/cosmosRegistry.ts",
+    "../../packages/sdk/src/prices/prices.ts",
+    "../../packages/sdk/src/tokenlists/tokenlist.ts",
+    "../../packages/sdk/src/evm/erc20.ts",
+    "../../packages/sdk/src/evm/evmTx.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "allowJs": true,
     "noEmit": true,
@@ -21,9 +27,11 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@ui/*": ["src/ui/*"],
-      "@ui": ["src/ui/index"]
+      // "@cosmix/ui/*": ["src/ui/*"],
+      // "@cosmix/ui": ["src/ui/index"],
+      "@/*": ["./*"]
     }
   }
 }

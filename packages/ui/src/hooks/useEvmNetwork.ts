@@ -1,23 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-interface EthereumProvider {
-  request: (args: {
-    method: string;
-    params?: any[] | Record<string, any>;
-  }) => Promise<any>;
-  on?: (event: string, listener: (...args: any[]) => void) => void;
-  removeListener?: (event: string, listener: (...args: any[]) => void) => void;
-}
-
-export type EvmChain = {
-  chainId: number;
-  name: string;
-  rpcUrls: string[];
-  nativeCurrency: { name: string; symbol: string; decimals: number };
-  blockExplorerUrls?: string[];
-};
+import { EvmChain, EthereumProvider } from '@cosmix/sdk';
 
 export function hexChainId(id: number) {
   return "0x" + id.toString(16);

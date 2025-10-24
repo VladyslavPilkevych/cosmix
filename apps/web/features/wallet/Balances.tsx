@@ -30,7 +30,7 @@ import {
   useFiatCurrency,
   formatFiat,
   formatAmount,
-} from "@ui";
+} from "@cosmix/ui";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -41,12 +41,14 @@ import {
   OSMOSIS_TESTNET,
   CosmosChainMeta,
   getCosmosAllBalances,
-} from "@sdk";
-import { getErc20Balances, Token, detectNonZeroBalances } from "../lib/erc20";
-import { usePrices } from "../lib/prices";
-import { useTokenList } from "../lib/tokenlist";
-import { useCosmosAssets, formatCosmosAmount } from "../lib/cosmosRegistry";
-import { useWatchlistEvm } from "@ui";
+  useTokenList,
+  useCosmosAssets,
+  formatCosmosAmount,
+  usePrices,
+  detectNonZeroBalances,
+  Token,
+} from "@cosmix/sdk";
+import { useWatchlistEvm } from "@cosmix/ui";
 import { Star } from "lucide-react";
 
 const TOKENS_MAINNET: Token[] = [

@@ -1,5 +1,5 @@
 {
-  "name": "@ui",
+  "name": "@cosmix/ui",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -19,5 +19,8 @@
     "next": "^14.2.5",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7"
+  },
+  "dependencies": {
+    "@cosmix/sdk": "workspace:*"
   }
 }

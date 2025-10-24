@@ -66,6 +66,6 @@ export async function detectNonZeroBalances(
       ...t,
       raw: res[i].status === "success" ? (res[i].result as bigint) : 0n,
     }))
-    .filter((x) => x.raw > 0n) // todo: commit for testing
+    .filter((x) => x.raw > 0n)
     .map((x) => ({ ...x, amount: Number(x.raw) / 10 ** x.decimals }));
 }

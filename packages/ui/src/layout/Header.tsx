@@ -2,7 +2,15 @@
 
 import * as React from "react";
 import NextLink from "next/link";
-import { Box, Flex, HStack, Link, Spacer, Text, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  HStack,
+  Link,
+  Spacer,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 
 type HeaderProps = {
   right?: React.ReactNode;
@@ -21,12 +29,18 @@ export function Header({ right }: HeaderProps) {
             <Link as={NextLink} href="/">
               {"Home"}
             </Link>
-            <Link as={NextLink} href="/grants">
-              {"Grants"}
+            <Link as={NextLink} href="/wallet">
+              {"Wallet"}
+            </Link>
+            <Link as={NextLink} href="/activity">
+              {"Activity"}
             </Link>
             <Link as={NextLink} href="/subscriptions">
               {"Subscriptions"}
             </Link>
+            {/* <Link as={NextLink} href="/grants">
+              {"Grants"}
+            </Link> */}
           </HStack>
         </HStack>
         <Spacer />

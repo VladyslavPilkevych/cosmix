@@ -115,10 +115,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@sdk':
+      '@cosmix/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@ui':
+      '@cosmix/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:
@@ -152,6 +152,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@cosmix/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       react:
         specifier: ^18.2.0
         version: 18.3.1

@@ -1,40 +1,15 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import Providers from "./providers";
-import { Header } from "@ui";
-import WalletPanel from "../components/WalletPanel";
-import { ColorModeScript } from "@chakra-ui/react";
-import dynamic from "next/dynamic";
-import { ThemeToggleButton } from "../components/ThemeToggleButton";
-const NetworkGateClient = dynamic(() => import("./network-gate-client"), {
-  ssr: false,
-});
+import "../styles/globals.css";
+import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Cosmix",
+  description: "Open-source cross-chain dashboard",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <Providers>
-          <ColorModeScript initialColorMode="system" />
-          <Header
-            right={
-              <>
-                <WalletPanel />
-                <ThemeToggleButton />
-              </>
-            }
-          />
-          <NetworkGateClient preferredIndex={0}>{children}</NetworkGateClient>
-        </Providers>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

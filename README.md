@@ -20,6 +20,6 @@ It provides a unified interface for wallet connection (**MetaMask**, **Keplr**),
 - **Package Manager:** pnpm  
 
 ### Build package with commands
-- `pnpm -F @sdk build`
-- `pnpm -F @ui build`
+- `pnpm -F @cosmix/sdk build`
+- `pnpm -F @cosmix/ui build`
 

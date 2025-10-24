@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { getEvmTxPage, type EvmTx, type EvmChainId } from "../lib/evmTx";
-import { getCosmosTxPage, type CosmosTx, type CosmosAccount } from "../lib/cosmosTx";
+import { CosmosAccount, CosmosTx, getCosmosTxPage, EvmChainId, EvmTx, getEvmTxPage } from "@cosmix/sdk";
 
 type Props = {
   evm?: { address: `0x${string}`; chainId: EvmChainId };
@@ -134,7 +133,7 @@ export default function Activity({ evm, cosmos, className }: Props) {
                     {tx.kind === "erc20" ? (tx.tokenSymbol ?? "ERC20") : "NATIVE"}
                   </span>
                   <span className="text-neutral-600">
-                    {tx.direction === "in" ? "⬇️ In" : tx.direction === "out" ? "⬆️ Out" : tx.direction === "self" ? "🔁 Self" : "↔️"}
+                    {tx.direction === "in" ? "In" : tx.direction === "out" ? "Out" : tx.direction === "self" ? "Self" : "Unknown"}
                   </span>
                   <span className="text-neutral-600">
                     {`from ${trimAddr(tx.from)} ${(tx.to) ? <>to {trimAddr(tx.to)}</> : null}`}

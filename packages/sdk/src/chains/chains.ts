@@ -1,6 +1,6 @@
-
-import { EvmChain } from "@ui";
 import { mainnet, sepolia } from "wagmi/chains";
+import { EvmChain } from "../evm/types";
+
 
 export const SUPPORTED_EVM: EvmChain[] = [
   {

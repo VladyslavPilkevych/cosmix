@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { EvmChain, useEvmNetwork } from "../hooks/useEvmNetwork";
+import { EvmChain } from '@cosmix/sdk';
+import { useEvmNetwork } from "@cosmix/ui";
 
 export function NetworkGate({
   supported,

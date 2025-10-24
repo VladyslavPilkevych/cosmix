@@ -12,7 +12,7 @@ import {
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ToastProvider } from "@ui";
+import { ToastProvider } from "@cosmix/ui";
 
 const theme = extendTheme({
   config: {

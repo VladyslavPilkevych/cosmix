@@ -45,16 +45,16 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@ui": [
+      "@cosmix/ui": [
         "packages/ui/src/index.ts"
       ],
-      "@ui/*": [
+      "@cosmix/ui/*": [
         "packages/ui/src/*"
       ],
-      "@sdk": [
+      "@cosmix/sdk": [
         "packages/sdk/src/index.ts"
       ],
-      "@sdk/*": [
+      "@cosmix/sdk/*": [
         "packages/sdk/src/*"
       ]
     }
